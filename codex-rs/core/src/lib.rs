@@ -1,3 +1,7 @@
+// Raised for the monitor tool: proving Send for a future that awaits
+// try_start_turn_if_idle from inside this crate recurses through the
+// whole turn-start machinery and overflows the default limit of 128.
+#![recursion_limit = "256"]
 //! Root of the `codex-core` library.
 
 // Prevent accidental direct writes to stdout/stderr in library code. All

@@ -252,6 +252,9 @@ pub enum Feature {
     RolloutBudget,
     /// Add current-time reminders to model-visible context.
     CurrentTimeReminder,
+    /// Expose a command-monitor tool: run a shell command in the background and
+    /// deliver each output line (stdout or stderr) to the model as a notification.
+    Monitor,
     /// Route MCP tool approval prompts through the MCP elicitation request path.
     ToolCallMcpElicitation,
     /// Prompt Codex Apps connector auth failures through MCP URL elicitations.
@@ -1369,6 +1372,12 @@ pub const FEATURES: &[FeatureSpec] = &[
     FeatureSpec {
         id: Feature::CurrentTimeReminder,
         key: "current_time_reminder",
+        stage: Stage::UnderDevelopment,
+        default_enabled: false,
+    },
+    FeatureSpec {
+        id: Feature::Monitor,
+        key: "monitor",
         stage: Stage::UnderDevelopment,
         default_enabled: false,
     },
