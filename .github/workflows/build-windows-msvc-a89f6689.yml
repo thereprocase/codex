@@ -1,0 +1,69 @@
+name: isolated Windows x64 MSVC build (a89f6689)
+
+on:
+  push:
+    branches:
+      - build/windows-msvc-a89f6689
+    paths:
+      - .github/workflows/build-windows-msvc-a89f6689.yml
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TARGET_DIR: ${{ runner.temp }}/codex-target
+
+jobs:
+  build:
+    name: Windows x64 MSVC
+    runs-on: windows-2025
+    timeout-minutes: 150
+    defaults:
+      run:
+        working-directory: codex-rs
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: a89f6689f0890ba07b96cdd6350f85f828486f40
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@e081816240890017053eacbb1bdf337761dc5582 # 1.95.0
+        with:
+          targets: x86_64-pc-windows-msvc
+      - name: Configure rusty_v8 artifact overrides and verify checksums
+        uses: ./.github/actions/setup-rusty-v8
+        with:
+          target: x86_64-pc-windows-msvc
+      - name: Configure MSVC environment
+        uses: ./.github/actions/setup-msvc-env
+        with:
+          target: x86_64-pc-windows-msvc
+      - name: Build codex
+        shell: bash
+        run: |
+          set -euo pipefail
+          export LIBSQLITE3_FLAGS=SQLITE_DISABLE_INTRINSIC
+          cargo build --locked --target x86_64-pc-windows-msvc --release --bin codex
+      - name: Record provenance
+        shell: pwsh
+        run: |
+          $binary = "$env:CARGO_TARGET_DIR\x86_64-pc-windows-msvc\release\codex.exe"
+          if (-not (Test-Path $binary)) { throw "codex.exe was not produced" }
+          $digest = (Get-FileHash -Algorithm SHA256 $binary).Hash.ToLowerInvariant()
+          @{
+            sourceCommit = (git rev-parse HEAD)
+            sourceRepository = "https://github.com/thereprocase/codex"
+            target = "x86_64-pc-windows-msvc"
+            version = "0.147.0"
+            sha256 = $digest
+            buildRunner = "$env:RUNNER_OS $env:ImageOS"
+            buildWorkflow = "$env:GITHUB_WORKFLOW"
+            runId = "$env:GITHUB_RUN_ID"
+          } | ConvertTo-Json | Set-Content -NoNewline -Encoding utf8 provenance.json
+          Copy-Item $binary codex.exe
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: codex-0.147.0-a89f6689-x86_64-pc-windows-msvc
+          path: |
+            codex-rs/codex.exe
+            codex-rs/provenance.json
+          if-no-files-found: error
