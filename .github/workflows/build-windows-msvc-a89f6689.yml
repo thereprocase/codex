@@ -10,14 +10,13 @@ on:
 permissions:
   contents: read
 
-env:
-  CARGO_TARGET_DIR: ${{ runner.temp }}/codex-target
-
 jobs:
   build:
     name: Windows x64 MSVC
     runs-on: windows-2025
     timeout-minutes: 150
+    env:
+      CARGO_TARGET_DIR: ${{ runner.temp }}/codex-target
     defaults:
       run:
         working-directory: codex-rs
