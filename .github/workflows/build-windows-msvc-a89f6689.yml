@@ -15,8 +15,6 @@ jobs:
     name: Windows x64 MSVC
     runs-on: windows-2025
     timeout-minutes: 150
-    env:
-      CARGO_TARGET_DIR: ${{ runner.temp }}/codex-target
     defaults:
       run:
         working-directory: codex-rs
@@ -25,6 +23,9 @@ jobs:
         with:
           ref: a89f6689f0890ba07b96cdd6350f85f828486f40
           persist-credentials: false
+      - name: Set isolated build path
+        shell: pwsh
+        run: '"CARGO_TARGET_DIR=$env:RUNNER_TEMP\codex-target" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append'
       - uses: dtolnay/rust-toolchain@e081816240890017053eacbb1bdf337761dc5582 # 1.95.0
         with:
           targets: x86_64-pc-windows-msvc
